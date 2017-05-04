@@ -5,28 +5,19 @@
 #include "RegularSelection.h"
 
 RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_TableReaderWriterPtr outputIn,
-                string selectionPredicateIn, vector <string> projectionsIn) {
+                string selectionPredicateIn, vector <string> projectionsIn, int threadNumIn) {
 
 	input = inputIn;
 	output = outputIn;
 	selectionPredicate = selectionPredicateIn;
 	projections = projectionsIn;
+	threadNum = threadNumIn;
 }
 
-void RegularSelection :: run () {
 
-	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
-	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
-	
-	// compile all of the coputations that we need here
-	vector <func> finalComputations;
-	for (string s : projections) {
-		finalComputations.push_back (inputRec->compileComputation (s));
-	}
-	func pred = inputRec->compileComputation (selectionPredicate);
-
+void regSelThread(int low, int high) {
 	// now, iterate through the B+-tree query results
-	MyDB_RecordIteratorAltPtr myIter = input->getIteratorAlt ();
+	MyDB_RecordIteratorAltPtr myIter = input->getIteratorAlt (low, high);
 	while (myIter->advance ()) {
 
 		myIter->getCurrent (inputRec);
@@ -44,6 +35,31 @@ void RegularSelection :: run () {
 
 		outputRec->recordContentHasChanged ();
 		output->append (outputRec);
+	}
+}
+
+void RegularSelection :: run () {
+
+	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
+	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
+	
+	// compile all of the coputations that we need here
+	vector <func> finalComputations;
+	for (string s : projections) {
+		finalComputations.push_back (inputRec->compileComputation (s));
+	}
+	func pred = inputRec->compileComputation (selectionPredicate);
+
+	// Table partition for each thread
+	int pageNumber = input->getNumPages();
+	int pagePartition = pageNumber / threadNum;
+	for(int i = 0; i < threadNum - 1; i++) {
+		threads.push_back(thread(regSelThread, i * pagePartition, (i + 1) * pagePartition - 1));
+	}
+	threads.push_back(thread(regSelThread, i * pagePartition, pageNumber - 1));
+
+	for(thread t : threads) {
+		t.join();
 	}
 }
 

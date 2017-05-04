@@ -21,6 +21,7 @@
 #include "MyDB_Table.h"
 #include <set>
 #include <vector>
+#include <mutex>
 
 // create a smart pointer for the catalog
 using namespace std;
@@ -93,6 +94,7 @@ private:
 	MyDB_BufferManagerPtr myBuffer;
 	shared_ptr <MyDB_PageReaderWriter> arrayAccessBuffer;
 	shared_ptr <MyDB_PageReaderWriter> lastPage;
+	mutex lock;
 	
 };
 

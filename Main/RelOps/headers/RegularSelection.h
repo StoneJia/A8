@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <thread>
 
 // this class encapsulates a simple, scan-based selection
 
@@ -32,6 +33,8 @@ private:
         MyDB_TableReaderWriterPtr output;
         string selectionPredicate;
         vector <string> projections;
+        int threadNum;
+		vector <thread> threads
 };
 
 #endif
