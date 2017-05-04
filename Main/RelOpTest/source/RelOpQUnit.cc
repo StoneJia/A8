@@ -84,7 +84,7 @@ int main () {
 		projections.push_back ("+ (+ (+ ([l_phone], string[ ]), + ([l_acctbal], string[ ])), [l_comment])");
 
 		t = clock();
-		RegularSelection myOp (supplierTableL, supplierTableOut, "== ([l_nationkey], int[1])", projections);
+		RegularSelection myOp (supplierTableL, supplierTableOut, "== ([l_nationkey], int[1])", projections, 1);
 		myOp.run ();
 		t = clock() - t;
 		float runningtime = (float)t / CLOCKS_PER_SEC;
@@ -146,7 +146,7 @@ int main () {
 		projections.push_back ("+ (+ (+ ([l_phone], string[ ]), + ([l_acctbal], string[ ])), [l_comment])");
 
 		t = clock();
-		RegularSelection myOp (supplierTableL, supplierTableOut, "&& (== ([l_nationkey], int[1]), > ([l_name], string [Supplier#000009378]))", projections);
+		RegularSelection myOp (supplierTableL, supplierTableOut, "&& (== ([l_nationkey], int[1]), > ([l_name], string [Supplier#000009378]))", projections, 1);
 		myOp.run ();
 		t = clock() - t;
 		float runningtime = (float)t / CLOCKS_PER_SEC;
