@@ -194,17 +194,15 @@ void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
 	// Check thread pinned loc
 	// Pin the thread pinned page
 	if(lastUsed.find(updateMe) != lastUsed.end()) {
-			lastUsed.erase(updateMe)
+			lastUsed.erase(updateMe);
 	}
 	unordered_map<thread::id, void *>::iterator it = threadPinnedLoc.find(this_thread::get_id()); 
 	if(it == threadPinnedLoc.end()) {
-		threadPinnedLoc.insert(this_thread::get_id(), updateMe -> bytes);
+		threadPinnedLoc[this_thread::get_id()] = updateMe -> bytes;
 	} else {
-		unpin(it->second); //unpin the previous thread pinned page
+		//unpin(updateMe); Bug //unpin the previous thread pinned page
 		it->second = updateMe->bytes;
 	}
-	
-	
 
 	mtx.unlock();
 }
@@ -272,7 +270,7 @@ MyDB_PageHandle MyDB_BufferManager :: getPinnedPage (MyDB_TablePtr whichTable, l
 
 	}	
 
-	mtx.unlcok();
+	mtx.unlock();
 	// get outta here
 	return make_shared <MyDB_PageHandleBase> (returnVal);
 }
