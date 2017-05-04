@@ -22,11 +22,11 @@ public:
 	// Record are read from input, and written to output.
 	//
 	RegularSelection (MyDB_TableReaderWriterPtr input, MyDB_TableReaderWriterPtr output,
-		string selectionPredicate, vector <string> projections);
+		string selectionPredicate, vector <string> projections, int threadNum);
 	
 	// execute the selection operation
 	void run ();
-	void regSelThread (int, int);
+	void regSelThread (int low, int high);
 
 private:
 

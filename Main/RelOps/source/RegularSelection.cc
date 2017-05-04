@@ -24,7 +24,7 @@ void RegularSelection :: regSelThread(int low, int high) {
 		finalComputations.push_back (inputRec->compileComputation (s));
 	}
 	func pred = inputRec->compileComputation (selectionPredicate);
-	
+
 	// now, iterate through the B+-tree query results
 	MyDB_RecordIteratorAltPtr myIter = input->getIteratorAlt (low, high);
 	while (myIter->advance ()) {
@@ -54,10 +54,11 @@ void RegularSelection :: run () {
 	// Table partition for each thread
 	int pageNumber = input->getNumPages();
 	int pagePartition = pageNumber / threadNum;
-	for(int i = 0; i < threadNum - 1; i++) {
-		threads.push_back(thread(regSelThread, i * pagePartition, (i + 1) * pagePartition - 1));
+	int i;
+	for(i = 0; i < threadNum - 1; i++) {
+		threads.push_back(thread(RegularSelection::regSelThread, i * pagePartition, (i + 1) * pagePartition - 1));
 	}
-	threads.push_back(thread(regSelThread, i * pagePartition, pageNumber - 1));
+	threads.push_back(thread(RegularSelection::regSelThread, i * pagePartition, pageNumber - 1));
 
 	for(thread t : threads) {
 		t.join();
