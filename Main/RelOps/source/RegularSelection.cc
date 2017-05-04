@@ -15,7 +15,7 @@ RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_Ta
 }
 
 
-void regSelThread(int low, int high) {
+void RegularSelection :: regSelThread(int low, int high) {
 	// now, iterate through the B+-tree query results
 	MyDB_RecordIteratorAltPtr myIter = input->getIteratorAlt (low, high);
 	while (myIter->advance ()) {
