@@ -26,7 +26,7 @@ public:
 	
 	// execute the selection operation
 	void run ();
-	void regSelThread ();
+	void regSelThread (int, int);
 
 private:
 
