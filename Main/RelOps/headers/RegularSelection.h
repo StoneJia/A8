@@ -34,7 +34,7 @@ private:
         string selectionPredicate;
         vector <string> projections;
         int threadNum;
-		vector <thread> threads
+		vector <thread> threads;
 };
 
 #endif
