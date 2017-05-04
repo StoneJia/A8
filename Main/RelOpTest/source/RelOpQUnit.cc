@@ -23,11 +23,12 @@
 #include <iostream>
 #include <vector>
 #include <utility>
+#include <time.h>
 
 using namespace std;
 
 int main () {
-
+	int t = 0;
 	QUnit::UnitTest qunit(cerr, QUnit::verbose);
 
 	// create a catalog
@@ -82,8 +83,12 @@ int main () {
 		projections.push_back ("[l_nationkey]");
 		projections.push_back ("+ (+ (+ ([l_phone], string[ ]), + ([l_acctbal], string[ ])), [l_comment])");
 
+		t = clock();
 		RegularSelection myOp (supplierTableL, supplierTableOut, "== ([l_nationkey], int[1])", projections);
 		myOp.run ();
+		t = clock() - t;
+		float runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "RegularSelection used " << runningtime <<" seconds"<<endl;
 
 		cout << "\nRunning selection.";
 		cout << "\nFirst result should be:\n";
@@ -106,10 +111,15 @@ int main () {
 		MyDB_TablePtr aggTable = make_shared <MyDB_Table> ("aggOut", "aggOut.bin", mySchemaOutAgain);
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
+		t = clock();
 		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]");
 		cout << "running aggregate\n";
 		myOpAgain.run ();
-		
+		t = clock() - t;
+		runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "Aggregate used " << runningtime <<" seconds"<<endl;
+
+
                 temp = aggTableOut->getEmptyRecord ();
                 myIter = aggTableOut->getIteratorAlt ();
 
@@ -135,8 +145,14 @@ int main () {
 		projections.push_back ("[l_nationkey]");
 		projections.push_back ("+ (+ (+ ([l_phone], string[ ]), + ([l_acctbal], string[ ])), [l_comment])");
 
+		t = clock();
 		RegularSelection myOp (supplierTableL, supplierTableOut, "&& (== ([l_nationkey], int[1]), > ([l_name], string [Supplier#000009378]))", projections);
 		myOp.run ();
+		t = clock() - t;
+		float runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "RegularSelection used " << runningtime <<" seconds"<<endl;
+
+
 
 		cout << "\nFirst result should be:\n";
 		cout << "Supplier#000009428|1|11-896-966-5146 5429.370000 furiously regular pinto beans caj|\n\n";
@@ -158,9 +174,14 @@ int main () {
 		MyDB_TablePtr aggTable = make_shared <MyDB_Table> ("aggOut", "aggOut.bin", mySchemaOutAgain);
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
+		t = clock();
 		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]");
-		cout << "running aggregate\n";
+		cout << "running aggregate\n";		
 		myOpAgain.run ();
+		t = clock() - t;
+		runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "Aggregate used " << runningtime <<" seconds"<<endl;
+
 		
                 temp = aggTableOut->getEmptyRecord ();
                 myIter = aggTableOut->getIteratorAlt ();
@@ -204,30 +225,40 @@ int main () {
 		projections.push_back ("[l_name]");
 		projections.push_back ("+ (+ ([l_comment], string[ ]), [r_comment])");
 
-		cout << "Do you want to run a:\n";
-		cout << "\t1. Sort merge join.\n";
-		cout << "\t2. Scan join.\n";
+		cout << "Do you want to run a Scan join:\n";
+		// cout << "\t1. Sort merge join.\n";
+		// cout << "\t2. Scan join.\n";
+		cout << "\t1. Yes. \n";
+		cout << "\t2. No. \n";
 		cout << "Enter 1 or 2:\n";
 		int res;
 		cin >> res;
 
-		if (res == 2) {
+		if (res == 1) {
 			ScanJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
 				"&& ( == ([l_suppkey], [r_suppkey]), == ([l_name], [r_name]))", projections, hashAtts,
 				"|| ( == ([l_nationkey], int[3]), == ([l_nationkey], int[4]))",
 				"== ([r_nationkey], int[3])");
 			cout << "running join\n";
+
+			t = clock();
 			myOp.run ();
-		} else if (res == 1) {
-			SortMergeJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
-				"&& ( == ([l_suppkey], [r_suppkey]), == ([l_name], [r_name]))", projections, 
-				make_pair (string ("[l_suppkey]"), string ("[r_suppkey]")),
-				"|| ( == ([l_nationkey], int[3]), == ([l_nationkey], int[4]))",
-				"== ([r_nationkey], int[3])");
-			cout << "running join\n";
-			myOp.run ();
-		} else {
-			cout << "I said 1 or 2!!!\n";
+
+			t = clock() - t;
+			float runningtime = (float)t / CLOCKS_PER_SEC;
+			cout << "ScanJoin used " << runningtime <<" seconds"<<endl;
+		}
+		// else if (res == 1) {
+		// 	SortMergeJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
+		// 		"&& ( == ([l_suppkey], [r_suppkey]), == ([l_name], [r_name]))", projections, 
+		// 		make_pair (string ("[l_suppkey]"), string ("[r_suppkey]")),
+		// 		"|| ( == ([l_nationkey], int[3]), == ([l_nationkey], int[4]))",
+		// 		"== ([r_nationkey], int[3])");
+		// 	cout << "running join\n";
+		// 	myOp.run ();
+		// } 
+		else {
+			cout << "I said No!\n";
 			return 3;
 		}
 
@@ -247,7 +278,12 @@ int main () {
 		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, 
 			"&& ( > ([l_name], string[Supplier#000002243]), < ([l_name], string[Supplier#000002303]))");
 		cout << "running aggregate\n";
+
+		t = clock();
 		myOpAgain.run ();
+		t = clock() - t;
+		float runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "Aggregate used " << runningtime <<" seconds"<<endl;
 		
                 MyDB_RecordPtr temp = aggTableOut->getEmptyRecord ();
                 MyDB_RecordIteratorAltPtr myIter = aggTableOut->getIteratorAlt ();
@@ -273,44 +309,47 @@ int main () {
 
 	{
 
-		// get the output schema and table
-		MyDB_SchemaPtr mySchemaOut = make_shared <MyDB_Schema> ();
-		mySchemaOut->appendAtt (make_pair ("r_name", make_shared <MyDB_StringAttType> ()));
-		mySchemaOut->appendAtt (make_pair ("r_address", make_shared <MyDB_StringAttType> ()));
-		mySchemaOut->appendAtt (make_pair ("comment", make_shared <MyDB_StringAttType> ()));
+	// 	// get the output schema and table
+	// 	MyDB_SchemaPtr mySchemaOut = make_shared <MyDB_Schema> ();
+	// 	mySchemaOut->appendAtt (make_pair ("r_name", make_shared <MyDB_StringAttType> ()));
+	// 	mySchemaOut->appendAtt (make_pair ("r_address", make_shared <MyDB_StringAttType> ()));
+	// 	mySchemaOut->appendAtt (make_pair ("comment", make_shared <MyDB_StringAttType> ()));
 
-		MyDB_TablePtr myTableOut = make_shared <MyDB_Table> ("supplierOut", "supplierOut.bin", mySchemaOut);
-		MyDB_TableReaderWriterPtr supplierTableOut = make_shared <MyDB_TableReaderWriter> (myTableOut, myMgr);
+	// 	MyDB_TablePtr myTableOut = make_shared <MyDB_Table> ("supplierOut", "supplierOut.bin", mySchemaOut);
+	// 	MyDB_TableReaderWriterPtr supplierTableOut = make_shared <MyDB_TableReaderWriter> (myTableOut, myMgr);
 
-		// This basically runs:
-		//
-		// SELECT r_name, r_address, "I love comments! " + r_comment
-		// FROM supplierRight
-		// WHERE r_address > "aa" AND r_address < "ab"
+	// 	// This basically runs:
+	// 	//
+	// 	// SELECT r_name, r_address, "I love comments! " + r_comment
+	// 	// FROM supplierRight
+	// 	// WHERE r_address > "aa" AND r_address < "ab"
 
-		vector <string> projections;
-		projections.push_back ("[r_name]");
-		projections.push_back ("[r_address]");
-		projections.push_back ("+ (string[I love comments! ], [r_comment])");
+	// 	vector <string> projections;
+	// 	projections.push_back ("[r_name]");
+	// 	projections.push_back ("[r_address]");
+	// 	projections.push_back ("+ (string[I love comments! ], [r_comment])");
 
-		MyDB_StringAttValPtr low = make_shared <MyDB_StringAttVal> ();
-		MyDB_StringAttValPtr high = make_shared <MyDB_StringAttVal> ();
-		low->set ("aa");
-		high->set ("ab");
-		BPlusSelection myOp (supplierTableR, supplierTableOut, low, high, 
-			"&& (&& ( > ([r_address], string[aa]), < ([r_address], string[ab])), > ([r_name], string[Supplier#000009000]))", projections);
+	// 	MyDB_StringAttValPtr low = make_shared <MyDB_StringAttVal> ();
+	// 	MyDB_StringAttValPtr high = make_shared <MyDB_StringAttVal> ();
+	// 	low->set ("aa");
+	// 	high->set ("ab");
+	// 	BPlusSelection myOp (supplierTableR, supplierTableOut, low, high, 
+	// 		"&& (&& ( > ([r_address], string[aa]), < ([r_address], string[ab])), > ([r_name], string[Supplier#000009000]))", projections);
 			
-		cout << "running selection\n";
-		myOp.run ();
+	// 	cout << "running selection\n";
+	// 	myOp.run ();
+	// 	t = clock() - t;
+	// 	runningtime = (float)t / CLOCKS_PER_SEC;
+	// 	cout << "Used " << runningtime <<" seconds"<<endl;
 
-                MyDB_RecordPtr temp = supplierTableOut->getEmptyRecord ();
-                MyDB_RecordIteratorAltPtr myIter = supplierTableOut->getIteratorAlt ();
+ //                MyDB_RecordPtr temp = supplierTableOut->getEmptyRecord ();
+ //                MyDB_RecordIteratorAltPtr myIter = supplierTableOut->getIteratorAlt ();
 
-		cout << "This should return 32 copies of 'Supplier#000009436|aaY,0sdTlrtKjse|I love comments! unusual, regular...'" << "\n";
-                while (myIter->advance ()) {
-                        myIter->getCurrent (temp);
-			cout << temp << "\n";
-		}	
+	// 	cout << "This should return 32 copies of 'Supplier#000009436|aaY,0sdTlrtKjse|I love comments! unusual, regular...'" << "\n";
+ //                while (myIter->advance ()) {
+ //                        myIter->getCurrent (temp);
+	// 		cout << temp << "\n";
+	// 	}	
 
 	}
 
@@ -343,7 +382,12 @@ int main () {
 		// GROUP BY r_suppkey, r_name
 		//
 		cout << "running agg\n";
+
+		t = clock();
 		myOpAgain.run ();
+		t = clock() - t;
+		float runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "Aggregate used " << runningtime <<" seconds"<<endl;
 
                 MyDB_RecordPtr temp = aggTableOut->getEmptyRecord ();
                 MyDB_RecordIteratorAltPtr myIter = aggTableOut->getIteratorAlt ();
@@ -352,8 +396,8 @@ int main () {
 		cout << "One of them should be '5|Supplier#000000005|5.000000|-283.840000|32|'.\n";
                 while (myIter->advance ()) {
                         myIter->getCurrent (temp);
-			cout << temp << "\n";
-		}
+						cout << temp << "\n";
+				}
 	}
 
 	{
@@ -382,7 +426,13 @@ int main () {
 		// GROUP BY r_suppkey / 100
 		//
 		cout << "running agg\n";
+
+		t = clock();
 		myOpAgain.run ();
+		t = clock() - t;
+		float runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "Aggregate used " << runningtime <<" seconds"<<endl;
+
                 MyDB_RecordPtr temp = aggTableOut->getEmptyRecord ();
                 MyDB_RecordIteratorAltPtr myIter = aggTableOut->getIteratorAlt ();
 
@@ -413,7 +463,12 @@ int main () {
 		// SELECT SUM (r_cnt)
 		// FROM lastResult
 		//
+
+		t = clock();
 		myOpOnceAgain.run ();
+		t = clock() - t;
+		runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "Aggregate used " << runningtime <<" seconds"<<endl;
 
 		cout << "\nThere should be one result: 320000.\n";
                 temp = aggTableOutFinal->getEmptyRecord ();
@@ -453,9 +508,11 @@ int main () {
 		projections.push_back ("* ([l_acctbal], [r_acctbal])");
 		projections.push_back ("[l_nationkey]");
 
-		cout << "Do you want to run a:\n";
-		cout << "\t1. Sort merge join.\n";
-		cout << "\t2. Scan join.\n";
+		cout << "Do you want to run a Scan join:\n";
+		// cout << "\t1. Sort merge join.\n";
+		// cout << "\t2. Scan join.\n";
+		cout << "\t1. Yes.\n";
+		cout << "\t2. No.\n";
 		cout << "Enter 1 or 2:\n";
 		int res;
 		cin >> res;
@@ -466,17 +523,24 @@ int main () {
 				"&& (< ([l_acctbal], int[4500]), > ([l_acctbal], int[4450]))",
 				"&& (< ([r_acctbal], int[2500]), > ([r_acctbal], int[2450]))");
 			cout << "running join\n";
+
+			t = clock();
 			myOp.run ();
-		} else if (res == 1) {
-			SortMergeJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
-				"== ([l_nationkey], [r_nationkey]))", projections, 
-				make_pair (string ("[l_nationkey]"), string ("[r_nationkey]")),
-				"&& (< ([l_acctbal], int[4500]), > ([l_acctbal], int[4450]))",
-				"&& (< ([r_acctbal], int[2500]), > ([r_acctbal], int[2450]))");
-			cout << "running join\n";
-			myOp.run ();
-		} else {
-			cout << "I said 1 or 2!!!\n";
+			t = clock() - t;
+			float runningtime = (float)t / CLOCKS_PER_SEC;
+			cout << "ScanJoin used " << runningtime <<" seconds"<<endl;
+		} 
+		// else if (res == 1) {
+		// 	SortMergeJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
+		// 		"== ([l_nationkey], [r_nationkey]))", projections, 
+		// 		make_pair (string ("[l_nationkey]"), string ("[r_nationkey]")),
+		// 		"&& (< ([l_acctbal], int[4500]), > ([l_acctbal], int[4450]))",
+		// 		"&& (< ([r_acctbal], int[2500]), > ([r_acctbal], int[2450]))");
+		// 	cout << "running join\n";
+		// 	myOp.run ();
+		// } 
+		else {
+			cout << "I said No!\n";
 			return 3;
 		}
 
@@ -496,7 +560,12 @@ int main () {
 
 		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]");
 		cout << "running aggregate\n";
+
+		t = clock();
 		myOpAgain.run ();
+		t = clock() - t;
+		float runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "ScanJoin used " << runningtime <<" seconds"<<endl;
 		
                 MyDB_RecordPtr temp = aggTableOut->getEmptyRecord ();
                 MyDB_RecordIteratorAltPtr myIter = aggTableOut->getIteratorAlt ();
@@ -534,30 +603,39 @@ int main () {
 		projections.push_back ("+(+ ([l_name], string[ ]), [r_name])");
 		projections.push_back ("* ([l_acctbal], [r_acctbal])");
 
-		cout << "Do you want to run a:\n";
-		cout << "\t1. Sort merge join.\n";
-		cout << "\t2. Scan join.\n";
+		cout << "Do you want to run a Scan join:\n";
+		// cout << "\t1. Sort merge join.\n";
+		// cout << "\t2. Scan join.\n";
+		cout << "\t1. Yes.\n";
+		cout << "\t2. No.\n";
 		cout << "Enter 1 or 2:\n";
 		int res;
 		cin >> res;
 
-		if (res == 2) {
+		if (res == 1) {
 			ScanJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
 				"== ([l_nationkey], [r_nationkey]))", projections, hashAtts,
 				"< ([l_nationkey], int[2])",
 				"bool[true]");
 			cout << "running join (may take some time)\n";
+
+			t = clock();
 			myOp.run ();
-		} else if (res == 1) {
-			SortMergeJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
-				"== ([l_nationkey], [r_nationkey]))", projections, 
-				make_pair (string ("[l_nationkey]"), string ("[r_nationkey]")),
-				"< ([l_nationkey], int[2])",
-				"bool[true]");
-			cout << "running join (may take some time)\n";
-			myOp.run ();
-		} else {
-			cout << "I said 1 or 2!!!\n";
+			t = clock() - t;
+			float runningtime = (float)t / CLOCKS_PER_SEC;
+			cout << "ScanJoin used " << runningtime <<" seconds"<<endl;
+		} 
+		// else if (res == 1) {
+		// 	SortMergeJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
+		// 		"== ([l_nationkey], [r_nationkey]))", projections, 
+		// 		make_pair (string ("[l_nationkey]"), string ("[r_nationkey]")),
+		// 		"< ([l_nationkey], int[2])",
+		// 		"bool[true]");
+		// 	cout << "running join (may take some time)\n";
+		// 	myOp.run ();
+		// } 
+		else {
+			cout << "I said no!\n";
 			return 3;
 		}
 
@@ -575,7 +653,13 @@ int main () {
 
 		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]");
 		cout << "running aggregate (may take some time)\n";
+
+		t = clock();
 		myOpAgain.run ();
+		t = clock() - t;
+		float runningtime = (float)t / CLOCKS_PER_SEC;
+		cout << "Aggregate used " << runningtime <<" seconds"<<endl;
+
 		
                 MyDB_RecordPtr temp = aggTableOut->getEmptyRecord ();
                 MyDB_RecordIteratorAltPtr myIter = aggTableOut->getIteratorAlt ();
