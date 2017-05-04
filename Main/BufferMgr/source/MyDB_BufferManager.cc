@@ -21,14 +21,18 @@
 #include <sys/uio.h>
 #include <unistd.h>
 #include <utility>
+#include <mutex>
 
 using namespace std;
-
+static recursive_mutex mtx;
 size_t MyDB_BufferManager :: getPageSize () {
 	return pageSize;
 }
 
 MyDB_PageHandle MyDB_BufferManager :: getPage (MyDB_TablePtr whichTable, long i) {
+	// lock for multithread
+	
+
 	mtx.lock();
 		
 	// open the file, if it is not open

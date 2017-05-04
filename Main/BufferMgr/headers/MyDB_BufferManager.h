@@ -24,7 +24,6 @@
 #include "TableCompare.h"
 #include <set>
 #include <unordered_map>
-#include <mutex>
 #include <thread>
 
 using namespace std;
@@ -106,8 +105,8 @@ private:
 	// the number of buffer pages
 	size_t numPages;
 
-	// lock for multithread
-	static recursive_mutex mtx;
+	// // lock for multithread
+	// static recursive_mutex mtx;
 
 	// A map record thread
 	unordered_map<thread::id, void *> threadPinnedLoc;
