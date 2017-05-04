@@ -15,6 +15,7 @@
 #include <memory>
 #include "MyDB_Table.h"
 #include <string>
+#include <mutex>
 
 // create a smart pointer for pages
 using namespace std;
@@ -49,15 +50,19 @@ public:
 
 	// decrements the ref count
 	inline void decRefCount (MyDB_PagePtr me) {
+		lock.lock();
 		refCount--;
 		if (refCount == 0) {
 			killpage (me);
 		}
+		lock.unlock();
 	}
 
 	// increments the ref count
 	inline void incRefCount () {
+		lock.lock();
 		refCount++;
+		lock.unlock();
 	}
 
 	// get the parent
@@ -93,6 +98,9 @@ private:
 
 	// the number of references
 	int refCount;
+
+	// mutex lock for reference count
+	mutex lock;
 
 	// kill the page
 	void killpage (MyDB_PagePtr me);

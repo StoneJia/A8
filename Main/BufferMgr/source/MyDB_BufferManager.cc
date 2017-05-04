@@ -29,6 +29,7 @@ size_t MyDB_BufferManager :: getPageSize () {
 }
 
 MyDB_PageHandle MyDB_BufferManager :: getPage (MyDB_TablePtr whichTable, long i) {
+	mtx.lock();
 		
 	// open the file, if it is not open
 	if (fds.count (whichTable) == 0) {
@@ -50,14 +51,17 @@ MyDB_PageHandle MyDB_BufferManager :: getPage (MyDB_TablePtr whichTable, long i)
 		//cout << "Didn't find it\n";
 		MyDB_PagePtr returnVal = make_shared <MyDB_Page> (whichTable, i, *this);
 		allPages [whichPage] = returnVal;
+		mtx.unlock();
 		return make_shared <MyDB_PageHandleBase> (returnVal);
 	}
 
+	mtx.unlock();
 	// it is there, so return it
 	return make_shared <MyDB_PageHandleBase> (allPages [whichPage]);
 }
 
 MyDB_PageHandle MyDB_BufferManager :: getPage () {
+	mtx.lock();
 
 	// open the file, if it is not open
 	if (fds.count (nullptr) == 0) {
@@ -75,6 +79,7 @@ MyDB_PageHandle MyDB_BufferManager :: getPage () {
 	}
 
 	MyDB_PagePtr returnVal = make_shared <MyDB_Page> (nullptr, pos, *this);
+	mtx.unlock();
 	return make_shared <MyDB_PageHandleBase> (returnVal);
 }
 
@@ -144,9 +149,10 @@ void MyDB_BufferManager :: killPage (MyDB_PagePtr killMe) {
 }
 
 void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
-	
+	mtx.lock();
 	// if this page was just accessed, get outta here
 	if (updateMe->timeTick > lastTimeTick - (numPages / 2) && updateMe->bytes != nullptr) {
+		mtx.unlock();
 		return;
 	}
 
@@ -184,10 +190,27 @@ void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
 		updateMe->timeTick = ++lastTimeTick;
 		lastUsed.insert (updateMe);
 	}
+
+	// Check thread pinned loc
+	// Pin the thread pinned page
+	if(lastUsed.find(updateMe) != lastUsed.end()) {
+			lastUsed.erase(updateMe)
+	}
+	unordered_map<thread::id, void *>::iterator it = threadPinnedLoc.find(this_thread::get_id()); 
+	if(it == threadPinnedLoc.end()) {
+		threadPinnedLoc.insert(this_thread::get_id(), updateMe -> bytes);
+	} else {
+		unpin(it->second); //unpin the previous thread pinned page
+		it->second = updateMe->bytes;
+	}
+	
+	
+
+	mtx.unlock();
 }
 
 MyDB_PageHandle MyDB_BufferManager :: getPinnedPage (MyDB_TablePtr whichTable, long i) {
-
+	mtx.lock();
 	// open the file, if it is not open
 	if (fds.count (whichTable) == 0) {
 		int fd = open (whichTable->getStorageLoc ().c_str (), O_CREAT | O_RDWR, 0666);
@@ -233,8 +256,10 @@ MyDB_PageHandle MyDB_BufferManager :: getPinnedPage (MyDB_TablePtr whichTable, l
 			kickOutPage ();
 
 		// if there is no space, we cannot do anything
-		if (availableRam.size () == 0) 
+		if (availableRam.size () == 0) {
+			mtx.lock();
 			return nullptr;
+		}
 
 		// set up the return val
 		returnVal->bytes = availableRam[availableRam.size () - 1];
@@ -247,19 +272,22 @@ MyDB_PageHandle MyDB_BufferManager :: getPinnedPage (MyDB_TablePtr whichTable, l
 
 	}	
 
+	mtx.unlcok();
 	// get outta here
 	return make_shared <MyDB_PageHandleBase> (returnVal);
 }
 
 MyDB_PageHandle MyDB_BufferManager :: getPinnedPage () {
-
+	mtx.lock();
 	// see if there is space to make a pinned page
 	if (availableRam.size () == 0)
 		kickOutPage ();
 
 	// if there is no space, we cannot do anything
-	if (availableRam.size () == 0) 
+	if (availableRam.size () == 0) {
+		mtx.unlock();
 		return nullptr;
+	}
 
 	// get a page to return
 	MyDB_PageHandle returnVal = getPage ();
@@ -267,6 +295,7 @@ MyDB_PageHandle MyDB_BufferManager :: getPinnedPage () {
 	returnVal->page->numBytes = pageSize;
 	availableRam.pop_back ();
 
+	mtx.unlock();
 	// and get outta here
 	return returnVal;
 }
