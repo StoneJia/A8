@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <thread>
 
 // This class encapulates a simple, hash-based aggregation + group by.  It does not
 // need to work when there is not enough space in the buffer manager to store all of
@@ -49,10 +50,12 @@ public:
 	//
 	Aggregate (MyDB_TableReaderWriterPtr input, MyDB_TableReaderWriterPtr output,
 		vector <pair <MyDB_AggType, string>> aggsToCompute,
-		vector <string> groupings, string selectionPredicate);
+		vector <string> groupings, string selectionPredicate,
+		int threadNumIn);
 	
 	// execute the aggregation
 	void run ();
+	void aggregateThread();
 
 private:
 
@@ -61,7 +64,8 @@ private:
 	vector <pair <MyDB_AggType, string>> aggsToCompute;
 	vector <string> groupings;
 	string selectionPredicate;
-
+	int threadNum;
+	vector <thread> threads;
 };
 
 #endif

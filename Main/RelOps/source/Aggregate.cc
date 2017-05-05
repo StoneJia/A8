@@ -12,13 +12,15 @@ using namespace std;
 
 Aggregate :: Aggregate (MyDB_TableReaderWriterPtr inputIn, MyDB_TableReaderWriterPtr outputIn,
                 vector <pair <MyDB_AggType, string>> aggsToComputeIn,
-                vector <string> groupingsIn, string selectionPredicateIn) {
+                vector <string> groupingsIn, string selectionPredicateIn,
+				int threadNumIn) {
 
 	input = inputIn;
 	output = outputIn;
 	aggsToCompute = aggsToComputeIn;
 	groupings = groupingsIn;
 	selectionPredicate = selectionPredicateIn;
+	threadNum = threadNumIn;
 
 }
 
