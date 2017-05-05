@@ -87,10 +87,23 @@ MyDB_PageHandle MyDB_BufferManager :: getPage () {
 	return make_shared <MyDB_PageHandleBase> (returnVal);
 }
 
+
+void MyDB_BufferManager :: bool isThreadPinned(MyDB_PagePtr page) {
+	for(auto it = threadPinnedLoc.begin(); it != threadPinnedLoc.end(); it++) {
+		if(it->second == page.getBytes()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void MyDB_BufferManager :: kickOutPage () {
 	
 	// find the oldest page
 	auto it = lastUsed.begin();
+	while(it != lastUsed.end() && isThreadPinned(it)) {
+		it->advance();
+	}
 	auto page = *it;
 
 	if (lastUsed.size () == 0)
@@ -195,17 +208,14 @@ void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
 		lastUsed.insert (updateMe);
 	}
 
-	// Check thread pinned loc
-	// Pin the thread pinned page
-	if(lastUsed.find(updateMe) != lastUsed.end()) {
-			lastUsed.erase(updateMe);
-	}
+	// Check thread pinned location
 	unordered_map<thread::id, void *>::iterator it = threadPinnedLoc.find(this_thread::get_id()); 
 	if(it == threadPinnedLoc.end()) {
-		threadPinnedLoc[this_thread::get_id()] = updateMe -> bytes;
+		//insert a new thread pinned location
+		threadPinnedLoc.emplace (this_thread::get_id(), updateMe->bytes);
 	} else {
-		//unpin(updateMe); Bug //unpin the previous thread pinned page
-		it->second = updateMe->bytes;
+		//update existing thread pinned location
+		threadPinnedLoc[this_thread::get_id()] = updateMe->bytes;
 	}
 
 	mtx.unlock();

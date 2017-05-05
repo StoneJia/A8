@@ -106,7 +106,7 @@ private:
 	size_t numPages;
 
 	// // lock for multithread
-	// static recursive_mutex mtx;
+	static recursive_mutex mtx;
 
 	// A map record thread
 	unordered_map<thread::id, void *> threadPinnedLoc;
@@ -117,6 +117,9 @@ private:
 
 	// kick out the LRU page
 	void kickOutPage ();
+
+	//Check if a page is thread pinned.
+	bool isThreadPinned(MyDB_PagePtr page)
 
 	// process an access to the given page
 	void access (MyDB_PagePtr updateMe);
