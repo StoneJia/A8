@@ -52,7 +52,7 @@ ScanJoin :: ScanJoin (MyDB_TableReaderWriterPtr leftInputIn, MyDB_TableReaderWri
 
 void ScanJoin :: scanJoinThread(int low, int high, unordered_map<size_t, vector<void *>> &myHash) {
 	// A thread gets a pinned page to append
-	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, *(input->getBufferMgr()));
+	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, *(onput->getBufferMgr()));
 	
 	MyDB_RecordPtr leftInputRec = leftTable->getEmptyRecord();
 	// and now we iterate through the other table
@@ -97,7 +97,7 @@ void ScanJoin :: scanJoinThread(int low, int high, unordered_map<size_t, vector<
 	
 	// now, iterate through the right table
 	//MyDB_RecordIteratorPtr myIterAgain = rightTable->getIterator (rightInputRec);
-	MyDB_RecordIteratorPtr myIterAgain = rightTable->getIteratorAlt (low, high);
+	MyDB_RecordIteratorAltPtr myIterAgain = rightTable->getIteratorAlt (low, high);
 	while (myIterAgain->hasNext ()) {
 
 		myIterAgain->getNext ();
