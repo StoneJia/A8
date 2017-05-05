@@ -43,7 +43,7 @@ public:
 	virtual void append (MyDB_RecordPtr appendMe);
 
 	// append a page to the table
-	virtual void appendPage (MyDB_PageReaderWriterPtr &appendMe);
+	virtual void appendPage (MyDB_PageReaderWriter &appendMe);
 
 	// return an itrator over this table... each time returnVal->next () is
 	// called, the resulting record will be placed into the record pointed to
