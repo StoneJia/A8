@@ -14,11 +14,12 @@ ScanJoin :: ScanJoin (MyDB_TableReaderWriterPtr leftInputIn, MyDB_TableReaderWri
                 MyDB_TableReaderWriterPtr outputIn, string finalSelectionPredicateIn,
 		vector <string> projectionsIn,
                 vector <pair <string, string>> equalityChecksIn, string leftSelectionPredicateIn,
-                string rightSelectionPredicateIn) {
+                string rightSelectionPredicateIn, int threadNumIn) {
 
 	output = outputIn;
 	finalSelectionPredicate = finalSelectionPredicateIn;
 	projections = projectionsIn;
+	threadNum = threadNumIn;
 
 	// we need to make sure that the left table is smaller
 
@@ -46,6 +47,102 @@ ScanJoin :: ScanJoin (MyDB_TableReaderWriterPtr leftInputIn, MyDB_TableReaderWri
 		leftSelectionPredicate = rightSelectionPredicateIn;
 
 		hadToSwapThem = true;
+	}
+}
+
+void RegularSelection :: scanJoinThread(int low, int high, vector<void *>> &myHash) {
+	MyDB_RecordPtr leftInputRec = leftTable->getEmptyRecord();
+	// and now we iterate through the other table
+	
+	// get the right input record, and get the various functions over it
+	MyDB_RecordPtr rightInputRec = rightTable->getEmptyRecord ();
+	vector <func> rightEqualities;
+	for (auto &p : equalityChecks) {
+		rightEqualities.push_back (rightInputRec->compileComputation (p.second));
+	}
+
+	// now get the predicate
+	func rightPred = rightInputRec->compileComputation (rightSelectionPredicate);
+
+	// and get the schema that results from combining the left and right records
+	MyDB_SchemaPtr mySchemaOut = make_shared <MyDB_Schema> ();
+	for (auto &p : leftTable->getTable ()->getSchema ()->getAtts ())
+		mySchemaOut->appendAtt (p);
+	for (auto &p : rightTable->getTable ()->getSchema ()->getAtts ())
+		mySchemaOut->appendAtt (p);
+
+	// get the combined record
+	MyDB_RecordPtr combinedRec = make_shared <MyDB_Record> (mySchemaOut);
+
+	// and make it a composite of the two input records
+	if (!hadToSwapThem)
+		combinedRec->buildFrom (leftInputRec, rightInputRec);
+	else
+		combinedRec->buildFrom (rightInputRec, leftInputRec);
+
+	// now, get the final predicate over it
+	func finalPredicate = combinedRec->compileComputation (finalSelectionPredicate);
+
+	// and get the final set of computatoins that will be used to buld the output record
+	vector <func> finalComputations;
+	for (string s : projections) {
+		finalComputations.push_back (combinedRec->compileComputation (s));
+	}
+
+	// this is the output record
+	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
+	
+	// now, iterate through the right table
+	//MyDB_RecordIteratorPtr myIterAgain = rightTable->getIterator (rightInputRec);
+	MyDB_RecordIteratorPtr myIterAgain = rightTable->getIterator (low, high);
+	while (myIterAgain->hasNext ()) {
+
+		myIterAgain->getNext ();
+
+		// see if it is accepted by the preicate
+		if (!rightPred ()->toBool ()) {
+			continue;
+		}
+
+		// hash the current record
+		size_t hashVal = 0;
+		for (auto &f : rightEqualities) {
+			hashVal ^= f ()->hash ();
+		}
+
+		// get the list of potential matches... first verify that there IS
+		// a match in there
+		if (myHash.count (hashVal) == 0) {
+			continue;
+		}
+
+		// if there is a match, then get the list of matches
+		vector <void *> &potentialMatches = myHash [hashVal];
+		
+		// and iterate though the potential matches, checking each of them
+		for (auto &v : potentialMatches) {
+
+			// build the combined record
+			leftInputRec->fromBinary (v);
+
+			// check to see if it is accepted by the join predicate
+			if (finalPredicate ()->toBool ()) {
+
+				// run all of the computations
+				int i = 0;
+				for (auto &f : finalComputations) {
+					outputRec->getAtt (i++)->set (f());
+				}
+
+				// the record's content has changed because it 
+				// is now a composite of two records whose content
+				// has changed via a read... we have to tell it this,
+				// or else the record's internal buffer may cause it
+				// to write old values
+				outputRec->recordContentHasChanged ();
+				output->append (outputRec);	
+			}
+		}
 	}
 }
 
@@ -99,97 +196,21 @@ void ScanJoin :: run () {
 		myHash [hashVal].push_back (myIter->getCurrentPointer ());
 	}
 
-	// and now we iterate through the other table
+
+	// Right Table partition for each thread
+	int pageNumber = rightTable->getNumPages();
+	int pagePartition = pageNumber / threadNum;
+	int i;
+	for(i = 0; i < threadNum - 1; i++) {
+		threads.push_back(thread(&ScanJoin::scanJoinThread, this, i * pagePartition, (i + 1) * pagePartition - 1, std::ref(myHash)));
+	}
+	threads.push_back(thread(&ScanJoin::scanJoinThread, this, i * pagePartition, pageNumber - 1,  std::ref(myHash)));
+
+	for(auto& t : threads) {
+		t.join();
+	}
+
 	
-	// get the right input record, and get the various functions over it
-	MyDB_RecordPtr rightInputRec = rightTable->getEmptyRecord ();
-	vector <func> rightEqualities;
-	for (auto &p : equalityChecks) {
-		rightEqualities.push_back (rightInputRec->compileComputation (p.second));
-	}
-
-	// now get the predicate
-	func rightPred = rightInputRec->compileComputation (rightSelectionPredicate);
-
-	// and get the schema that results from combining the left and right records
-	MyDB_SchemaPtr mySchemaOut = make_shared <MyDB_Schema> ();
-	for (auto &p : leftTable->getTable ()->getSchema ()->getAtts ())
-		mySchemaOut->appendAtt (p);
-	for (auto &p : rightTable->getTable ()->getSchema ()->getAtts ())
-		mySchemaOut->appendAtt (p);
-
-	// get the combined record
-	MyDB_RecordPtr combinedRec = make_shared <MyDB_Record> (mySchemaOut);
-
-	// and make it a composite of the two input records
-	if (!hadToSwapThem)
-		combinedRec->buildFrom (leftInputRec, rightInputRec);
-	else
-		combinedRec->buildFrom (rightInputRec, leftInputRec);
-
-	// now, get the final predicate over it
-	func finalPredicate = combinedRec->compileComputation (finalSelectionPredicate);
-
-	// and get the final set of computatoins that will be used to buld the output record
-	vector <func> finalComputations;
-	for (string s : projections) {
-		finalComputations.push_back (combinedRec->compileComputation (s));
-	}
-
-	// this is the output record
-	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
-	
-	// now, iterate through the right table
-	MyDB_RecordIteratorPtr myIterAgain = rightTable->getIterator (rightInputRec);
-	while (myIterAgain->hasNext ()) {
-
-		myIterAgain->getNext ();
-
-		// see if it is accepted by the preicate
-		if (!rightPred ()->toBool ()) {
-			continue;
-		}
-
-		// hash the current record
-		size_t hashVal = 0;
-		for (auto &f : rightEqualities) {
-			hashVal ^= f ()->hash ();
-		}
-
-		// get the list of potential matches... first verify that there IS
-		// a match in there
-		if (myHash.count (hashVal) == 0) {
-			continue;
-		}
-
-		// if there is a match, then get the list of matches
-		vector <void *> &potentialMatches = myHash [hashVal];
-		
-		// and iterate though the potential matches, checking each of them
-		for (auto &v : potentialMatches) {
-
-			// build the combined record
-			leftInputRec->fromBinary (v);
-
-			// check to see if it is accepted by the join predicate
-			if (finalPredicate ()->toBool ()) {
-
-				// run all of the computations
-				int i = 0;
-				for (auto &f : finalComputations) {
-					outputRec->getAtt (i++)->set (f());
-				}
-
-				// the record's content has changed because it 
-				// is now a composite of two records whose content
-				// has changed via a read... we have to tell it this,
-				// or else the record's internal buffer may cause it
-				// to write old values
-				outputRec->recordContentHasChanged ();
-				output->append (outputRec);	
-			}
-		}
-	}
 }
 
 #endif

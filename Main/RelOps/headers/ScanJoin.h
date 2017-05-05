@@ -85,6 +85,7 @@ public:
 	
 	// execute the join
 	void run ();
+	void scanJoinThread (int low, int high);
 
 private:
 
@@ -97,6 +98,8 @@ private:
 	string leftSelectionPredicate;
 	string rightSelectionPredicate;
 	bool hadToSwapThem;
+	int threadNum;
+	vector <thread> threads;
 };
 
 #endif
