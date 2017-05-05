@@ -18,16 +18,6 @@ void RegularSelection :: regSelThread(int low, int high) {
 	// A thread gets a pinned page to append
 	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, *(input->getBufferMgr()));
 
-	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
-	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
-	
-	// compile all of the coputations that we need here
-	vector <func> finalComputations;
-	for (string s : projections) {
-		finalComputations.push_back (inputRec->compileComputation (s));
-	}
-	func pred = inputRec->compileComputation (selectionPredicate);
-
 	// now, iterate through the B+-tree query results
 	MyDB_RecordIteratorAltPtr myIter = input->getIteratorAlt (low, high);
 	while (myIter->advance ()) {
@@ -58,6 +48,16 @@ void RegularSelection :: regSelThread(int low, int high) {
 }
 
 void RegularSelection :: run () {
+
+	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
+	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
+	
+	// compile all of the coputations that we need here
+	vector <func> finalComputations;
+	for (string s : projections) {
+		finalComputations.push_back (inputRec->compileComputation (s));
+	}
+	func pred = inputRec->compileComputation (selectionPredicate);
 
 	// Table partition for each thread
 	int pageNumber = input->getNumPages();
