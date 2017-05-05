@@ -75,13 +75,13 @@ void RegularSelection :: run () {
 
 	// spawn threads
     std::vector<std::thread> threadGroups;
-    int PagesPerThread = (rightTable->getNumPages()) / numThread;
+    int PagesPerThread = (input->getNumPages()) / numThread;
     int lowPage = 0;
-    for (int i = 0; i < numThread - 1; i++) {
+    for (int i = 0; i < threadNum - 1; i++) {
         threadGroups.emplace_back(&RegularSelection :: regSelThread, this, lowPage, lowPage + PagesPerThread - 1);
         lowPage = lowPage + PagesPerThread;
     }
-    threadGroups.emplace_back(&RegularSelection :: regSelThread, this, lowPage, rightTable->getNumPages() - 1);
+    threadGroups.emplace_back(&RegularSelection :: regSelThread, this, lowPage, input->getNumPages() - 1);
 
     // wait for threads to end.
     for (auto &th : threadGroups) th.join();
