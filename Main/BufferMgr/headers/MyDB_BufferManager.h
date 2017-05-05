@@ -106,7 +106,7 @@ private:
 	size_t numPages;
 
 	// // lock for multithread
-	static recursive_mutex mtx;
+	//static recursive_mutex mtx;
 
 	// A map record thread
 	unordered_map<thread::id, void *> threadPinnedLoc;
