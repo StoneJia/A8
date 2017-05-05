@@ -3,6 +3,7 @@
 #define REG_SELECTION_H
 
 #include "MyDB_TableReaderWriter.h"
+#include "MyDB_PageReaderWriter.h"
 #include <string>
 #include <utility>
 #include <vector>
