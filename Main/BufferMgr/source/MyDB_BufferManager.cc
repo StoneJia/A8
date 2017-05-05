@@ -31,8 +31,6 @@ size_t MyDB_BufferManager :: getPageSize () {
 
 MyDB_PageHandle MyDB_BufferManager :: getPage (MyDB_TablePtr whichTable, long i) {
 	// lock for multithread
-	
-
 	mtx.lock();
 		
 	// open the file, if it is not open
@@ -220,18 +218,21 @@ void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
 		updateMe->timeTick = ++lastTimeTick;
 		lastUsed.insert (updateMe);
 	}
+	mtx.unlock();
 
 	// Check thread pinned location
 	unordered_map<thread::id, void *>::iterator it = threadPinnedLoc.find(this_thread::get_id()); 
 	if(it == threadPinnedLoc.end()) {
 		//insert a new thread pinned location
+		mtx.lock();
 		threadPinnedLoc.emplace (this_thread::get_id(), updateMe->bytes);
+		mtx.unlock();
 	} else {
 		//update existing thread pinned location
 		threadPinnedLoc[this_thread::get_id()] = updateMe->bytes;
 	}
 
-	mtx.unlock();
+	
 }
 
 MyDB_PageHandle MyDB_BufferManager :: getPinnedPage (MyDB_TablePtr whichTable, long i) {

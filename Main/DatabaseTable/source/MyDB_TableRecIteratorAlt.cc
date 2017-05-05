@@ -26,32 +26,34 @@ void *MyDB_TableRecIteratorAlt :: getCurrentPointer () {
 
 bool MyDB_TableRecIteratorAlt :: advance () {
 
-	if (myParent[curPage].getType () == MyDB_PageType :: RegularPage && myIter->advance ())
+	if (currentPage.getType () == MyDB_PageType :: RegularPage && myIter->advance ())
 		return true;
 
 	if (curPage == myTable->lastPage () || curPage == highPage)
 		return false;
 
 	curPage++;
-	myIter = myParent[curPage].getIteratorAlt ();
+	myIter = currentPage.getIteratorAlt ();
 	return advance ();
 }
 
 MyDB_TableRecIteratorAlt :: MyDB_TableRecIteratorAlt (MyDB_TableReaderWriter &myParent, MyDB_TablePtr myTableIn,
 	int lowPage, int highPageIn) :
-	myParent (myParent) {
+	myParent (myParent), currentPage(myParent, lowPage){
 	myTable = myTableIn;
 	curPage = lowPage;
 	highPage = highPageIn;
-	myIter = myParent[curPage].getIteratorAlt ();		
+	//myIter = myParent[curPage].getIteratorAlt ();	
+	myIter = currentPage.getIteratorAlt ();
 }
 
 MyDB_TableRecIteratorAlt :: MyDB_TableRecIteratorAlt (MyDB_TableReaderWriter &myParent, MyDB_TablePtr myTableIn) :
-	myParent (myParent) {
+	myParent (myParent), currentPage(myParent, 0) {
 	myTable = myTableIn;
 	curPage = 0;
 	highPage = 1999999999;
-	myIter = myParent[curPage].getIteratorAlt ();		
+	//myIter = myParent[curPage].getIteratorAlt ();
+	myIter = currentPage.getIteratorAlt ();		
 }
 
 MyDB_TableRecIteratorAlt :: ~MyDB_TableRecIteratorAlt () {}

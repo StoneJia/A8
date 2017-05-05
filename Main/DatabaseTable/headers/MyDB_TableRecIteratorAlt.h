@@ -48,6 +48,7 @@ private:
 	int highPage;	
 	MyDB_TableReaderWriter &myParent;
 	MyDB_TablePtr myTable;
+        MyDB_PageReaderWriter currentPage;
 };
 
 #endif
