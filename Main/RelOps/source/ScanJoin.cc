@@ -51,6 +51,9 @@ ScanJoin :: ScanJoin (MyDB_TableReaderWriterPtr leftInputIn, MyDB_TableReaderWri
 }
 
 void RegularSelection :: scanJoinThread(int low, int high, vector<void *>> &myHash) {
+	// A thread gets a pinned page to append
+	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, *(input->getBufferMgr()));
+	
 	MyDB_RecordPtr leftInputRec = leftTable->getEmptyRecord();
 	// and now we iterate through the other table
 	
@@ -140,7 +143,14 @@ void RegularSelection :: scanJoinThread(int low, int high, vector<void *>> &myHa
 				// or else the record's internal buffer may cause it
 				// to write old values
 				outputRec->recordContentHasChanged ();
-				output->append (outputRec);	
+				if(!(localPageRW -> append(outputRec)) ) {
+					//lock.lock();
+					output->appendPage(*localPageRW);
+					//lock.unlock();
+					localPageRW->clear();
+					localPageRW->append(outputRec);
+				}	
+				//output->append (outputRec);	
 			}
 		}
 	}

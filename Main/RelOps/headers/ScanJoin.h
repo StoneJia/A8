@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <thread>
 
 // This class encapulates a scan join, where one table is hashed, and then the 
 // other is scanned and joined with the hashed table.  If the smaller table is
