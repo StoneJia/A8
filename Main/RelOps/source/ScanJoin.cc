@@ -144,9 +144,7 @@ void ScanJoin :: scanJoinThread(int low, int high, unordered_map<size_t, vector<
 				// to write old values
 				outputRec->recordContentHasChanged ();
 				if(!(localPageRW -> append(outputRec)) ) {
-					//lock.lock();
 					output->appendPage(*localPageRW);
-					//lock.unlock();
 					localPageRW->clear();
 					localPageRW->append(outputRec);
 				}	
@@ -212,9 +210,9 @@ void ScanJoin :: run () {
 	int pagePartition = pageNumber / threadNum;
 	int i = 0;
 	for(i = 0; i < threadNum - 1; i++) {
-		threads.push_back(thread(&ScanJoin::scanJoinThread, this, i * pagePartition, (i + 1) * pagePartition - 1, std::ref(myHash), leftInputRec));
+		threads.emplace_back(&ScanJoin::scanJoinThread, this, i * pagePartition, (i + 1) * pagePartition - 1, std::ref(myHash), leftInputRec);
 	}
-	threads.push_back(thread(&ScanJoin::scanJoinThread, this, i * pagePartition, pageNumber - 1,  std::ref(myHash), leftInputRec));
+	threads.emplace_back(&ScanJoin::scanJoinThread, this, i * pagePartition, pageNumber - 1,  std::ref(myHash), leftInputRec);
 
 	for(auto& t : threads) {
 		t.join();
