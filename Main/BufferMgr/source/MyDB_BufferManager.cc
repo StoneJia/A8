@@ -90,7 +90,7 @@ MyDB_PageHandle MyDB_BufferManager :: getPage () {
 
 bool MyDB_BufferManager :: isThreadPinned(MyDB_PagePtr page) {
 	for(auto it = threadPinnedLoc.begin(); it != threadPinnedLoc.end(); it++) {
-		if(it->second == page.getBytes()) {
+		if(it->second == page->getBytes()) {
 			return true;
 		}
 	}
