@@ -166,13 +166,26 @@ void MyDB_BufferManager :: killPage (MyDB_PagePtr killMe) {
 }
 
 void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
-	mtx.lock();
+	
 	// if this page was just accessed, get outta here
 	if (updateMe->timeTick > lastTimeTick - (numPages / 2) && updateMe->bytes != nullptr) {
-		mtx.unlock();
+
+		// Check thread pinned location
+		unordered_map<thread::id, void *>::iterator it = threadPinnedLoc.find(this_thread::get_id()); 
+		if(it == threadPinnedLoc.end()) {
+			//insert a new thread pinned location
+			mtx.lock();
+			threadPinnedLoc.emplace (this_thread::get_id(), updateMe->bytes);
+			mtx.unlock();
+		} else {
+			//update existing thread pinned location
+			threadPinnedLoc[this_thread::get_id()] = updateMe->bytes;
+		}
+
 		return;
 	}
 
+	mtx.lock();
 	// first, see if it is currently in the LRU list; if it is, update it
 	if (lastUsed.count (updateMe) == 1) {
 		auto page = *(lastUsed.find (updateMe));
