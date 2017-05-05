@@ -64,11 +64,11 @@ void RegularSelection :: run () {
 	int pagePartition = pageNumber / threadNum;
 	int i;
 	for(i = 0; i < threadNum - 1; i++) {
-		threads.push_back(thread(RegularSelection::regSelThread, i * pagePartition, (i + 1) * pagePartition - 1));
+		threads.push_back(thread(&RegularSelection::regSelThread, this, i * pagePartition, (i + 1) * pagePartition - 1));
 	}
-	threads.push_back(thread(RegularSelection::regSelThread, i * pagePartition, pageNumber - 1));
+	threads.push_back(thread(&RegularSelection::regSelThread, this, i * pagePartition, pageNumber - 1));
 
-	for(thread t : threads) {
+	for(auto& t : threads) {
 		t.join();
 	}
 }

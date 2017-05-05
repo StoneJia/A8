@@ -2,8 +2,11 @@
 from os import listdir
 from os.path import isfile, join, abspath
 
+libraries = ['pthread']
+library_paths = ''
+
 common_env = Environment()
-common_env.Append(CXXFLAGS = '-std=c++11 -Wall -g -O3')
+common_env.Append(CXXFLAGS = '-std=c++11 -pthread -Wall -g -O3')
 common_env.Append(YACCFLAGS='-d')
 common_env.Append(CFLAGS='-std=c11')
 
@@ -113,5 +116,5 @@ if ans=="10":
 if ans=="11":
 	print("\nOK, building rel op unit tests using clang++.")
 	common_env.Replace(CXX = "clang++")
-	common_env.Program ('bin/relOpUnitTest', ['../Main/RelOpTest/source/RelOpQUnit.cc', relOpSrc, tableSrc, recordSrc, catalogSrc, bufferSrc])
+	common_env.Program ('bin/relOpUnitTest', ['../Main/RelOpTest/source/RelOpQUnit.cc', relOpSrc, tableSrc, recordSrc, catalogSrc, bufferSrc], LIBS = libraries, LIBPATH = library_paths)
 
