@@ -97,7 +97,7 @@ void ScanJoin :: scanJoinThread(int low, int high, unordered_map<size_t, vector<
 	
 	// now, iterate through the right table
 	//MyDB_RecordIteratorPtr myIterAgain = rightTable->getIterator (rightInputRec);
-	MyDB_RecordIteratorPtr myIterAgain = rightTable->getIterator (low, high);
+	MyDB_RecordIteratorPtr myIterAgain = rightTable->getIteratorAlt (low, high);
 	while (myIterAgain->hasNext ()) {
 
 		myIterAgain->getNext ();
