@@ -16,7 +16,7 @@ RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_Ta
 
 void RegularSelection :: regSelThread(int low, int high) {
 	// A thread gets a pinned page to append
-	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, input->getBufferMgr());
+	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, *(input->getBufferMgr()));
 
 	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
 	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
