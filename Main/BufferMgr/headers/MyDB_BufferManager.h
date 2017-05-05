@@ -119,7 +119,7 @@ private:
 	void kickOutPage ();
 
 	//Check if a page is thread pinned.
-	bool isThreadPinned(MyDB_PagePtr page);
+	bool isThreadPinned(MyDB_PagePtr checkMe);
 
 	// process an access to the given page
 	void access (MyDB_PagePtr updateMe);

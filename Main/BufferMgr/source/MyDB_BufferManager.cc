@@ -88,7 +88,7 @@ MyDB_PageHandle MyDB_BufferManager :: getPage () {
 }
 
 
-void MyDB_BufferManager :: bool isThreadPinned(MyDB_PagePtr page) {
+bool MyDB_BufferManager :: isThreadPinned(MyDB_PagePtr page) {
 	for(auto it = threadPinnedLoc.begin(); it != threadPinnedLoc.end(); it++) {
 		if(it->second == page.getBytes()) {
 			return true;
@@ -101,7 +101,7 @@ void MyDB_BufferManager :: kickOutPage () {
 	
 	// find the oldest page
 	auto it = lastUsed.begin();
-	while(it != lastUsed.end() && isThreadPinned(it)) {
+	while(it != lastUsed.end() && isThreadPinned(*it)) {
 		it++;
 	}
 	auto page = *it;
