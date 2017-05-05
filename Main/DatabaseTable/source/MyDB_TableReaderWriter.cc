@@ -96,11 +96,11 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 
 void MyDB_TableReaderWriter :: appendPage (MyDB_PageReaderWriter &appendMe) {
 	lock.lock();
-	/*
+	
 	forMe->setLastPage (forMe->lastPage () + 1);
 	lastPage = make_shared <MyDB_PageReaderWriter> (*this, forMe->lastPage ());
-	*/
-	lastPage = myTable[myTable.getNumPages];
+	
+	//lastPage = forMe[forMe.getNumPages()];
 	memmove( lastPage->getBytes(), appendMe.getBytes(), myBuffer->getPageSize() );
 	lock.unlock();
 }
