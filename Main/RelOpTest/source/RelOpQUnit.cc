@@ -2,6 +2,8 @@
 #ifndef BPLUS_TEST_H
 #define BPLUS_TEST_H
 
+#define THREAD_NUM 2
+
 #include "MyDB_AttType.h"  
 #include "MyDB_BufferManager.h"
 #include "MyDB_Catalog.h"  
@@ -24,6 +26,7 @@
 #include <vector>
 #include <utility>
 #include <time.h>
+
 
 using namespace std;
 
@@ -84,7 +87,7 @@ int main () {
 		projections.push_back ("+ (+ (+ ([l_phone], string[ ]), + ([l_acctbal], string[ ])), [l_comment])");
 
 		t = clock();
-		RegularSelection myOp (supplierTableL, supplierTableOut, "== ([l_nationkey], int[1])", projections, 1);
+		RegularSelection myOp (supplierTableL, supplierTableOut, "== ([l_nationkey], int[1])", projections, THREAD_NUM);
 		myOp.run ();
 		t = clock() - t;
 		float runningtime = (float)t / CLOCKS_PER_SEC;
@@ -146,7 +149,7 @@ int main () {
 		projections.push_back ("+ (+ (+ ([l_phone], string[ ]), + ([l_acctbal], string[ ])), [l_comment])");
 
 		t = clock();
-		RegularSelection myOp (supplierTableL, supplierTableOut, "&& (== ([l_nationkey], int[1]), > ([l_name], string [Supplier#000009378]))", projections, 1);
+		RegularSelection myOp (supplierTableL, supplierTableOut, "&& (== ([l_nationkey], int[1]), > ([l_name], string [Supplier#000009378]))", projections, THREAD_NUM);
 		myOp.run ();
 		t = clock() - t;
 		float runningtime = (float)t / CLOCKS_PER_SEC;
@@ -238,7 +241,8 @@ int main () {
 			ScanJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
 				"&& ( == ([l_suppkey], [r_suppkey]), == ([l_name], [r_name]))", projections, hashAtts,
 				"|| ( == ([l_nationkey], int[3]), == ([l_nationkey], int[4]))",
-				"== ([r_nationkey], int[3])");
+				"== ([r_nationkey], int[3])",
+				THREAD_NUM);
 			cout << "running join\n";
 
 			t = clock();
@@ -517,11 +521,12 @@ int main () {
 		int res;
 		cin >> res;
 
-		if (res == 2) {
+		if (res == 1) {
 			ScanJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
 				"== ([l_nationkey], [r_nationkey]))", projections, hashAtts,
 				"&& (< ([l_acctbal], int[4500]), > ([l_acctbal], int[4450]))",
-				"&& (< ([r_acctbal], int[2500]), > ([r_acctbal], int[2450]))");
+				"&& (< ([r_acctbal], int[2500]), > ([r_acctbal], int[2450]))",
+				THREAD_NUM);
 			cout << "running join\n";
 
 			t = clock();
@@ -616,7 +621,8 @@ int main () {
 			ScanJoin myOp (supplierTableL, supplierTableRNoBPlus, supplierTableOut, 
 				"== ([l_nationkey], [r_nationkey]))", projections, hashAtts,
 				"< ([l_nationkey], int[2])",
-				"bool[true]");
+				"bool[true]",
+				THREAD_NUM);
 			cout << "running join (may take some time)\n";
 
 			t = clock();
