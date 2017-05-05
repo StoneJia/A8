@@ -102,7 +102,7 @@ void MyDB_BufferManager :: kickOutPage () {
 	// find the oldest page
 	auto it = lastUsed.begin();
 	while(it != lastUsed.end() && isThreadPinned(it)) {
-		it->advance();
+		it++;
 	}
 	auto page = *it;
 
