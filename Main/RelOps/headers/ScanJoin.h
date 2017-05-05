@@ -82,11 +82,11 @@ public:
 		MyDB_TableReaderWriterPtr output, string finalSelectionPredicate, 
 		vector <string> projections,
 		vector <pair <string, string>> equalityChecks, string leftSelectionPredicate,
-		string rightSelectionPredicate);
+		string rightSelectionPredicate, int threadNumIn);
 	
 	// execute the join
 	void run ();
-	void scanJoinThread (int low, int high);
+	void scanJoinThread(int low, int high, unordered_map<size_t, vector<void *>> &myHash)
 
 private:
 
