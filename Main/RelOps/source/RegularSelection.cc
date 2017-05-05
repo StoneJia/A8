@@ -62,7 +62,7 @@ void RegularSelection :: run () {
 	// Table partition for each thread
 	int pageNumber = input->getNumPages();
 	int pagePartition = pageNumber / threadNum;
-	int i;
+	int i = 0;
 	for(i = 0; i < threadNum - 1; i++) {
 		threads.push_back(thread(&RegularSelection::regSelThread, this, i * pagePartition, (i + 1) * pagePartition - 1));
 	}

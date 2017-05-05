@@ -86,7 +86,7 @@ public:
 	
 	// execute the join
 	void run ();
-	void scanJoinThread(int low, int high, unordered_map<size_t, vector<void *>> &myHash);
+	void scanJoinThread(int low, int high, unordered_map<size_t, vector<void *>> &myHash, MyDB_RecordPtr leftInputRec);
 
 private:
 
