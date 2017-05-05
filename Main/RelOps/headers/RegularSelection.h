@@ -27,7 +27,13 @@ public:
 	
 	// execute the selection operation
 	void run ();
-	void regSelThread (int low, int high);
+	//void regSelThread (int low, int high);
+	regSelThread(
+		MyDB_TableReaderWriterPtr inputIn, MyDB_TableReaderWriterPtr outputIn,
+		MyDB_RecordPtr inputRec, MyDB_RecordPtr outputRec,
+		vector <func> finalComputations,
+		int low, int high);
+
 
 private:
 

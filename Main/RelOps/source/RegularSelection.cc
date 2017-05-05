@@ -14,7 +14,11 @@ RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_Ta
 }
 
 
-void RegularSelection :: regSelThread(int low, int high) {
+void RegularSelection :: regSelThread(
+	MyDB_TableReaderWriterPtr inputIn, MyDB_TableReaderWriterPtr outputIn,
+	MyDB_RecordPtr inputRec, MyDB_RecordPtr outputRec,
+	vector <func> finalComputations,
+	int low, int high) {
 	// A thread gets a pinned page to append
 	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, *(input->getBufferMgr()));
 
