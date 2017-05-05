@@ -96,7 +96,7 @@ bool MyDB_BufferManager :: isThreadPinned(MyDB_PagePtr page) {
 }
 
 void MyDB_BufferManager :: kickOutPage () {
-	
+	mtx.lock();
 	// find the oldest page
 	auto it = lastUsed.begin();
 	while(it != lastUsed.end() && isThreadPinned(*it)) {
@@ -130,10 +130,11 @@ void MyDB_BufferManager :: kickOutPage () {
 	// if this guy has no references, kill him
 	if (page->refCount == 0)
 		killPage (page);
+	mtx.unlock();
 }
 
 void MyDB_BufferManager :: killPage (MyDB_PagePtr killMe) {
-	
+	mtx.lock();
 	//cout << "killing " << killMe->myTable << " " << killMe->pos << "\n";
 
 	// if this is an anon page...
@@ -161,6 +162,7 @@ void MyDB_BufferManager :: killPage (MyDB_PagePtr killMe) {
 		pair <MyDB_TablePtr, long> whichPage = make_pair (killMe->myTable, killMe->pos);
 		allPages.erase (whichPage);
 	}
+	mutex.unlock();
 }
 
 void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
@@ -327,8 +329,10 @@ MyDB_PageHandle MyDB_BufferManager :: getPinnedPage () {
 }
 
 void MyDB_BufferManager :: unpin (MyDB_PagePtr unpinMe) {
+	mtx.lock();
 	unpinMe->timeTick = ++lastTimeTick;
 	lastUsed.insert (unpinMe);
+	mtx.unlock();
 }
 
 MyDB_BufferManager :: MyDB_BufferManager (size_t pageSizeIn, size_t numPagesIn, string tempFileIn) {
