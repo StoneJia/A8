@@ -50,7 +50,7 @@ ScanJoin :: ScanJoin (MyDB_TableReaderWriterPtr leftInputIn, MyDB_TableReaderWri
 	}
 }
 
-void RegularSelection :: scanJoinThread(int low, int high, unordered_map<size_t, vector<void *>> &myHash) {
+void ScanJoin :: scanJoinThread(int low, int high, unordered_map<size_t, vector<void *>> &myHash) {
 	// A thread gets a pinned page to append
 	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, *(input->getBufferMgr()));
 	
