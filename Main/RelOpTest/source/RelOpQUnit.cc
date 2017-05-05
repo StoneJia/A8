@@ -115,7 +115,7 @@ int main () {
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
 		t = clock();
-		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]");
+		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]", THREAD_NUM);
 		cout << "running aggregate\n";
 		myOpAgain.run ();
 		t = clock() - t;
@@ -178,7 +178,7 @@ int main () {
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
 		t = clock();
-		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]");
+		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]", THREAD_NUM);
 		cout << "running aggregate\n";		
 		myOpAgain.run ();
 		t = clock() - t;
@@ -280,7 +280,7 @@ int main () {
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
 		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, 
-			"&& ( > ([l_name], string[Supplier#000002243]), < ([l_name], string[Supplier#000002303]))");
+			"&& ( > ([l_name], string[Supplier#000002243]), < ([l_name], string[Supplier#000002303]))", THREAD_NUM);
 		cout << "running aggregate\n";
 
 		t = clock();
@@ -376,7 +376,7 @@ int main () {
 		MyDB_TablePtr aggTable = make_shared <MyDB_Table> ("aggOut", "aggOut.bin", mySchemaOutAgain);
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
-		Aggregate myOpAgain (supplierTableR, aggTableOut, aggsToCompute, groupings, "< ([r_suppkey], int[10])");
+		Aggregate myOpAgain (supplierTableR, aggTableOut, aggsToCompute, groupings, "< ([r_suppkey], int[10])", THREAD_NUM);
 
 		// This basically runs:
 		//
@@ -421,7 +421,7 @@ int main () {
 		MyDB_TablePtr aggTable = make_shared <MyDB_Table> ("aggOut", "aggOut.bin", mySchemaOutAgain);
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
-		Aggregate myOpAgain (supplierTableR, aggTableOut, aggsToCompute, groupings, "bool [true]");
+		Aggregate myOpAgain (supplierTableR, aggTableOut, aggsToCompute, groupings, "bool [true]", THREAD_NUM);
 
 		// This basically runs:
 		//
@@ -458,7 +458,7 @@ int main () {
 		MyDB_TablePtr aggTableFinal = make_shared <MyDB_Table> ("aggOutOut", "aggOutOut.bin", mySchemaOutAgainAgain);
 		MyDB_TableReaderWriterPtr aggTableOutFinal = make_shared <MyDB_TableReaderWriter> (aggTableFinal, myMgr);
 
-		Aggregate myOpOnceAgain (aggTableOut, aggTableOutFinal, aggsToCompute, groupings, "bool [true]");
+		Aggregate myOpOnceAgain (aggTableOut, aggTableOutFinal, aggsToCompute, groupings, "bool [true]", THREAD_NUM);
 		//
 		// Assuming that the output of the last query has the schema (r_suppkey, r_suppkey_avg, r_acctbal_avg, r_cnt)
 		//
@@ -563,7 +563,7 @@ int main () {
 		MyDB_TablePtr aggTable = make_shared <MyDB_Table> ("aggOut", "aggOut.bin", mySchemaOutAgain);
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
-		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]");
+		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]", THREAD_NUM);
 		cout << "running aggregate\n";
 
 		t = clock();
@@ -657,7 +657,7 @@ int main () {
 		MyDB_TablePtr aggTable = make_shared <MyDB_Table> ("aggOut", "aggOut.bin", mySchemaOutAgain);
 		MyDB_TableReaderWriterPtr aggTableOut = make_shared <MyDB_TableReaderWriter> (aggTable, myMgr);
 
-		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]");
+		Aggregate myOpAgain (supplierTableOut, aggTableOut, aggsToCompute, groupings, "bool[true]", THREAD_NUM);
 		cout << "running aggregate (may take some time)\n";
 
 		t = clock();
