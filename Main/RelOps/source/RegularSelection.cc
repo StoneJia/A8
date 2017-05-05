@@ -48,7 +48,7 @@ void RegularSelection :: regSelThread(int low, int high) {
 		outputRec->recordContentHasChanged ();
 		if(!(localPageRW -> append(outputRec)) ) {
 			//lock.lock();
-			output->appendPage(*localPageRW);
+			output->appendPage(std::ref(*localPageRW));
 			//lock.unlock();
 			localPageRW->clear();
 			localPageRW->append(outputRec);
