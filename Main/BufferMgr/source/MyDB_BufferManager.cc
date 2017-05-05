@@ -162,7 +162,7 @@ void MyDB_BufferManager :: killPage (MyDB_PagePtr killMe) {
 		pair <MyDB_TablePtr, long> whichPage = make_pair (killMe->myTable, killMe->pos);
 		allPages.erase (whichPage);
 	}
-	mutex.unlock();
+	mtx.unlock();
 }
 
 void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
