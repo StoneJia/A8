@@ -81,7 +81,6 @@ MyDB_PageReaderWriter &MyDB_TableReaderWriter :: last () {
 }
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
-	lock.lock();
 	// try to append the record on the current page...
 	if (!lastPage->append (appendMe)) {
 
@@ -91,7 +90,6 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 		lastPage->clear ();
 		lastPage->append (appendMe);
 	}
-	lock.unlock();
 }
 
 void MyDB_TableReaderWriter :: appendPage (MyDB_PageReaderWriter &appendMe) {
