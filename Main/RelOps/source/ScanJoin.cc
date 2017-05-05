@@ -143,12 +143,14 @@ void ScanJoin :: scanJoinThread(int low, int high, unordered_map<size_t, vector<
 				// or else the record's internal buffer may cause it
 				// to write old values
 				outputRec->recordContentHasChanged ();
+				/*
 				if(!(localPageRW -> append(outputRec)) ) {
 					output->appendPage(*localPageRW);
 					localPageRW->clear();
 					localPageRW->append(outputRec);
 				}	
-				//output->append (outputRec);	
+				*/
+				output->append (outputRec);	
 			}
 		}
 	}

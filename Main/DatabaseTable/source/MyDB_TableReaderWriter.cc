@@ -101,7 +101,7 @@ void MyDB_TableReaderWriter :: appendPage (MyDB_PageReaderWriter &appendMe) {
 	lastPage = make_shared <MyDB_PageReaderWriter> (*this, forMe->lastPage ());
 	
 	//lastPage = forMe[forMe.getNumPages()];
-	memcpy( lastPage->getBytes(), appendMe.getBytes(), myBuffer->getPageSize() );
+	memcpy((void*)(lastPage->getBytes()), (void*)(appendMe.getBytes()), myBuffer->getPageSize() );
 	lock.unlock();
 }
 
