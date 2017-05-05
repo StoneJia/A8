@@ -63,6 +63,7 @@ void RegularSelection :: run () {
 	int pageNumber = input->getNumPages();
 	int pagePartition = pageNumber / threadNum;
 	int i = 0;
+	std::vector <std::thread> threads;
 	for(i = 0; i < threadNum - 1; i++) {
 		threads.push_back(thread(&RegularSelection::regSelThread, this, i * pagePartition, (i + 1) * pagePartition - 1));
 	}
