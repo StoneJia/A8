@@ -81,7 +81,7 @@ MyDB_PageReaderWriter &MyDB_TableReaderWriter :: last () {
 }
 
 void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
-
+	lock.lock();
 	// try to append the record on the current page...
 	if (!lastPage->append (appendMe)) {
 
@@ -91,6 +91,18 @@ void MyDB_TableReaderWriter :: append (MyDB_RecordPtr appendMe) {
 		lastPage->clear ();
 		lastPage->append (appendMe);
 	}
+	lock.unlock();
+}
+
+void MyDB_TableReaderWriter :: appendPage (MyDB_PageReaderWriter &appendMe) {
+	lock.lock();
+	/*
+	forMe->setLastPage (forMe->lastPage () + 1);
+	lastPage = make_shared <MyDB_PageReaderWriter> (*this, forMe->lastPage ());
+	*/
+	lastPage = myTable[myTable.getNumPages];
+	memmove( lastPage->getBytes(), appendMe->getBytes(), myBuffer->getPageSize() );
+	lock.unlock();
 }
 
 pair <vector <size_t>, size_t>  MyDB_TableReaderWriter :: loadFromTextFile (string fName) {

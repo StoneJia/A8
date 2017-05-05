@@ -15,6 +15,9 @@ RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_Ta
 
 
 void RegularSelection :: regSelThread(int low, int high) {
+	// A thread gets a pinned page to append
+	MyDB_PageReaderWriterPtr localPageRW = make_shared<MyDB_PageReaderWriter>(true, input->getBufferMgr());
+
 	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
 	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
 	
@@ -43,13 +46,18 @@ void RegularSelection :: regSelThread(int low, int high) {
 		}
 
 		outputRec->recordContentHasChanged ();
-		output->append (outputRec);
+		if(!(localPageRW -> append(outputRec)) ) {
+			//lock.lock();
+			output->appendPage(localPageRW);
+			//lock.unlock();
+			localPageRW->clear();
+			localPageRW->append(outputRec);
+		}
+		//output->append (outputRec);
 	}
 }
 
 void RegularSelection :: run () {
-
-	
 
 	// Table partition for each thread
 	int pageNumber = input->getNumPages();
