@@ -3,7 +3,6 @@
 #define REG_SELECTION_C
 
 #include "RegularSelection.h"
-#include "MyDB_PageReaderWriter.h"
 
 RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_TableReaderWriterPtr outputIn,
                 string selectionPredicateIn, vector <string> projectionsIn, int threadNumIn) {
